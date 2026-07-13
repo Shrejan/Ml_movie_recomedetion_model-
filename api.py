@@ -1,7 +1,9 @@
+import os
 from typing import List
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+import uvicorn
 
 from Recommender import recommend_movies
 
@@ -58,3 +60,8 @@ def recommend(user_movies: List[UserMovie]):
             status_code=500,
             detail=str(e)
         ) from e
+
+
+if __name__ == "__main__":
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
