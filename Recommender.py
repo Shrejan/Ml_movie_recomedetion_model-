@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import List
-
+from huggingface_hub import hf_hub_download
 import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
