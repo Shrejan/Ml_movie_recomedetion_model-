@@ -1,4 +1,6 @@
-import os
+    
+    import os
+import logging
 from typing import List
 
 from fastapi import FastAPI, HTTPException
@@ -7,9 +9,21 @@ import uvicorn
 
 from Recommender import recommend_movies
 
+# ---------------- LOGGING ----------------
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s"
+)
+
+logger = logging.getLogger(__name__)
+logger.info("Starting Movie Recommendation API...")
+# -----------------------------------------
+
 app = FastAPI(
     title="Movie Recommendation API"
 )
+
+logger.info("FastAPI application initialized.")
 
 
 class UserMovie(BaseModel):
@@ -24,9 +38,8 @@ class Recommendation(BaseModel):
 
 
 @app.get("/")
-
 def home():
-    
+    logger.info("Home endpoint called.")
     return {
         "message": "Movie Recommendation API Running"
     }
@@ -36,31 +49,63 @@ def home():
     "/rec",
     response_model=List[Recommendation]
 )
-print(response_model)
-
 def recommend(user_movies: List[UserMovie]):
 
+    logger.info("========================================")
+    logger.info("New recommendation request received.")
+    logger.info(f"Number of movies received: {len(user_movies)}")
+
     try:
-        print(user_movies)
+        logger.info("Raw request data:")
+        logger.info(user_movies)
+
         payload = []
-        for movie in user_movies:
+
+        logger.info("Converting Pydantic models to dictionaries...")
+
+        for i, movie in enumerate(user_movies):
+            logger.info(f"Processing movie {i+1}")
+
             if hasattr(movie, "model_dump"):
-                payload.append(movie.model_dump())
+                movie_dict = movie.model_dump()
             else:
-                payload.append(movie.dict())
+                movie_dict = movie.dict()
+
+            logger.info(f"Movie Data: {movie_dict}")
+            payload.append(movie_dict)
+
+        logger.info("Payload successfully created.")
+        logger.info(payload)
+
+        logger.info("Calling recommend_movies()...")
 
         recommendations = recommend_movies(payload)
-        print(recommendations)
-        print(payload)
+
+        logger.info("recommend_movies() execution completed.")
+
+        logger.info(
+            f"Number of recommendations returned: {len(recommendations)}"
+        )
+
+        for i, rec in enumerate(recommendations):
+            logger.info(f"Recommendation {i+1}: {rec}")
+
+        logger.info("Returning recommendations to client.")
+        logger.info("========================================")
 
         return recommendations
 
     except ValueError as e:
+        logger.error("ValueError occurred!", exc_info=True)
+
         raise HTTPException(
             status_code=400,
             detail=str(e)
         ) from e
+
     except Exception as e:
+        logger.exception("Unexpected exception occurred!")
+
         raise HTTPException(
             status_code=500,
             detail=str(e)
@@ -69,4 +114,12 @@ def recommend(user_movies: List[UserMovie]):
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+
+    logger.info(f"Starting Uvicorn server on port {port}")
+    logger.info("Server is ready to accept requests.")
+
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=port
+    )
