@@ -49,8 +49,8 @@ def home():
     response_model=List[Recommendation]
 )
 def recommend(user_movies: List[UserMovie]):
-
     logger.info("========================================")
+
     logger.info("New recommendation request received.")
     logger.info(f"Number of movies received: {len(user_movies)}")
 
@@ -59,8 +59,6 @@ def recommend(user_movies: List[UserMovie]):
         logger.info(user_movies)
 
         payload = []
-
-        logger.info("Converting Pydantic models to dictionaries...")
 
         for i, movie in enumerate(user_movies):
             logger.info(f"Processing movie {i+1}")
@@ -74,8 +72,6 @@ def recommend(user_movies: List[UserMovie]):
             payload.append(movie_dict)
 
         logger.info("Payload successfully created.")
-        logger.info(payload)
-
         logger.info("Calling recommend_movies()...")
 
         recommendations = recommend_movies(payload)
