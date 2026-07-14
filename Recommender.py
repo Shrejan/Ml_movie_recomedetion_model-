@@ -6,36 +6,29 @@ import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 
 
-COLUMNS = [
-    "movieId",
-    "rating_emb",
-    "movie_title",
-    "movie_genres",
-    "genre_emb",
-    "tag_emb",
-    "imdbId",
-    "movie_vector",
-]
 
 BASE_DIR = Path(__file__).resolve().parent
 
 # Load once when server starts
 
 
-file_path = hf_hub_download(
-
-repo_id="Shrejankotyan2005/movie_vector",
-
-filename="movie_vectors.npy",
-
-repo_type="dataset"
-
+metadata_path = hf_hub_download(
+    repo_id="Shrejankotyan2005/movie_vector",
+    filename="movie_metadata.csv",
+    repo_type="dataset"
 )
 
-movie_vectors = np.load(file_path, allow_pickle=True)
+embeddings_path = hf_hub_download(
+    repo_id="Shrejankotyan2005/movie_vector",
+    filename="movie_embeddings_f32.npy",
+    repo_type="dataset"
+)
 
-movie_vectors_df = pd.DataFrame(movie_vectors, columns=COLUMNS)
+metadata = pd.read_csv(metadata_path)
+embeddings = np.load(embeddings_path)
 
+# Ensure row alignment
+assert len(metadata) == len(embeddings)
 
 def recommend_movies(user_movies: List[dict], top_n: int = 10):
 
@@ -44,8 +37,8 @@ def recommend_movies(user_movies: List[dict], top_n: int = 10):
         for movie in user_movies
     }
 
-    rows = movie_vectors_df[
-        movie_vectors_df["imdbId"].isin(ratings_map.keys())
+    rows = metadata[
+        metadata["imdbId"].isin(ratings_map.keys())
     ].copy()
 
     if rows.empty:
@@ -53,27 +46,25 @@ def recommend_movies(user_movies: List[dict], top_n: int = 10):
             "None of the provided imdbIds were found."
         )
 
+    # Get row indices of watched movies
+    watched_indices = rows.index.to_numpy()
+
+    # Get corresponding embeddings
+    watched_movie_matrix = embeddings[watched_indices]
+
     weights = rows["imdbId"].map(ratings_map).values
 
-    watched_movie_matrix = np.vstack(
-        rows["movie_vector"].values
-    )
-
+    # Build user vector
     user_vector = np.average(
         watched_movie_matrix,
         axis=0,
         weights=weights
-    )
+    ).reshape(1, -1)
 
-    user_vector = user_vector.reshape(1, -1)
-
-    all_movie_matrix = np.vstack(
-        movie_vectors_df["movie_vector"].values
-    )
-
+    # Similarity against all movies
     similarities = cosine_similarity(
         user_vector,
-        all_movie_matrix
+        embeddings
     )[0]
 
     top_idx = np.argsort(similarities)[::-1]
@@ -84,7 +75,7 @@ def recommend_movies(user_movies: List[dict], top_n: int = 10):
 
     for idx in top_idx:
 
-        movie = movie_vectors_df.iloc[idx]
+        movie = metadata.iloc[idx]
 
         if movie["imdbId"] in watched_ids:
             continue
