@@ -55,8 +55,8 @@ def recommend_movies(user_movies: List[dict], top_n: int = 10):
         for movie in user_movies
     }
 
-    logging.info(f"ratings_map created")
-    logging.info(f"ratings_map: {ratings_map}")
+    
+   
 
     rows = metadata[
         metadata["imdbId"].isin(ratings_map.keys())
@@ -70,13 +70,11 @@ def recommend_movies(user_movies: List[dict], top_n: int = 10):
             "None of the provided imdbIds were found."
         )
 
-    logging.info("Extracting watched indices")
+
 
     watched_indices = rows.index.to_numpy()
 
-    logging.info(
-        f"watched_indices shape: {watched_indices.shape}"
-    )
+    
 
     watched_movie_matrix = embeddings[watched_indices]
 
@@ -90,10 +88,10 @@ def recommend_movies(user_movies: List[dict], top_n: int = 10):
     ).values.astype(np.float32)
 
 
-    logging.info(f"weights: {weights}")
+   
     logging.info(f"weights shape: {weights.shape}")
 
-    logging.info("Building user vector")
+    
 
     user_vector = np.average(
     watched_movie_matrix,
@@ -105,15 +103,11 @@ def recommend_movies(user_movies: List[dict], top_n: int = 10):
         f"user_vector shape: {user_vector.shape}"
     )
 
-    logging.info(
-        f"user_vector dtype: {user_vector.dtype}"
-    )
+    
     logging.info(
         f"user embeddings shape: {embeddings.shape}"
     )
-    logging.info(
-        f"user embeddings shape: {embeddings.dtype}"
-    )
+  
 
     logging.info("Starting cosine similarity")
 
@@ -122,10 +116,6 @@ def recommend_movies(user_movies: List[dict], top_n: int = 10):
         embeddings
     )[0]
     
-
-
-
-
     logging.info("Cosine similarity completed")
 
     logging.info(
