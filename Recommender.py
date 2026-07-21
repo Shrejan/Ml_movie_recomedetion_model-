@@ -64,7 +64,7 @@ logger.info(f"Metadata downloaded: {metadata_path}")
 
 embeddings_path = hf_hub_download(
     repo_id="Shrejankotyan2005/movie_vector",
-    filename="movie_embeddings_f32.npy",
+    filename="movie_embeddings_f16.npy",
     repo_type="dataset",
 )
 logger.info(f"Embeddings downloaded: {embeddings_path}")
