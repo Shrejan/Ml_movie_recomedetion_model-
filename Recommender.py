@@ -70,7 +70,7 @@ embeddings_path = hf_hub_download(
 logger.info(f"Embeddings downloaded: {embeddings_path}")
 
 metadata = pd.read_csv(metadata_path)
-embeddings = np.load(embeddings_path).astype(np.float32)
+embeddings = np.load(embeddings_path).astype(np.float16)
 
 assert len(metadata) == len(embeddings), (
     f"Metadata rows ({len(metadata)}) and embeddings rows ({len(embeddings)}) "
@@ -85,7 +85,7 @@ logger.info(f"Embeddings shape: {embeddings.shape}, dtype: {embeddings.dtype}")
 _t = time.perf_counter()
 _norms = np.linalg.norm(embeddings, axis=1, keepdims=True)
 _norms[_norms == 0] = 1e-10  # guard against zero vectors -> division by zero
-normalized_embeddings = (embeddings / _norms).astype(np.float32)
+normalized_embeddings = (embeddings / _norms).astype(np.float16)
 logger.info(f"Precomputed normalized embeddings in {time.perf_counter() - _t:.3f}s")
 
 # Precompute plain numpy arrays + a dict for O(1) id -> row-index lookup.
