@@ -25,7 +25,7 @@ logging.info(f"Metadata downloaded: {metadata_path}")
 
 embeddings_path = hf_hub_download(
     repo_id="Shrejankotyan2005/movie_vector",
-    filename="movie_embeddings_f32.npy",
+    filename="movie_embeddings_f16.npy",
     repo_type="dataset"
 )
 
@@ -85,7 +85,7 @@ def recommend_movies(user_movies: List[dict], top_n: int = 10):
     
     weights = rows["imdbId"].map(
     ratings_map
-    ).values.astype(np.float32)
+    ).values.astype(np.float16)
 
 
    
@@ -97,7 +97,7 @@ def recommend_movies(user_movies: List[dict], top_n: int = 10):
     watched_movie_matrix,
     axis=0,
     weights=weights
-    ).astype(np.float32).reshape(1, -1)
+    ).astype(np.float16).reshape(1, -1)
 
     logging.info(
         f"user_vector shape: {user_vector.shape}"
